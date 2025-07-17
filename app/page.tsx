@@ -188,11 +188,7 @@ export default function AIVideoGenerator() {
                 <TabsContent value="capture" className="p-6 space-y-6">
                   {/* Camera/Photo Section */}
                   <div>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Camera className="w-5 h-5" />
-                      <h3 className="text-lg font-semibold">{state === "camera" ? "Capture Photo" : "Your Photo"}</h3>
-                    </div>
-
+                   
                     <div className="relative aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
                       {state === "camera" && (
                         <>
@@ -294,10 +290,7 @@ export default function AIVideoGenerator() {
                 <TabsContent value="video" className="p-6">
                   {generatedVideo && (
                     <div className="space-y-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Play className="w-5 h-5" />
-                        <h3 className="text-lg font-semibold">Generated Video</h3>
-                      </div>
+                      
 
                       <div className="relative aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
                         <video
@@ -312,34 +305,14 @@ export default function AIVideoGenerator() {
                       </div>
 
                       <div className="flex flex-col gap-3">
-                        <Button
-                          onClick={toggleVideoPlayback}
-                          variant="outline"
-                          className="w-full bg-transparent"
-                          size="lg"
-                        >
-                          {isPlaying ? (
-                            <>
-                              <Pause className="w-4 h-4 mr-2" />
-                              Pause Video
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4 mr-2" />
-                              Play Video
-                            </>
-                          )}
-                        </Button>
+                
 
                         <Button onClick={downloadVideo} variant="outline" className="w-full bg-transparent" size="lg">
                           <Download className="w-4 h-4 mr-2" />
                           Download Video
                         </Button>
 
-                        <Button onClick={regenerateVideo} variant="outline" className="w-full bg-transparent" size="lg">
-                          <Wand2 className="w-4 h-4 mr-2" />
-                          Regenerate Video
-                        </Button>
+                        
                       </div>
                     </div>
                   )}
