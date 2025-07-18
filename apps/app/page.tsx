@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Image from "next/image";
+import { VideoService } from "@/lib/video-service";
 
 type AppState = "camera" | "captured" | "generating" | "completed"
 
@@ -19,6 +20,7 @@ export default function AIVideoGenerator() {
   const [prompt, setPrompt] = useState("")
   const [generatedVideo, setGeneratedVideo] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -102,19 +104,31 @@ export default function AIVideoGenerator() {
         // to receive the result from the webhook in real-time. For this example,
         // we'll continue to use polling.
         const poll = async () => {
-          const videoResult = await VideoService.getVideoResult(result.request_id!)
-          if (videoResult.status === 'COMPLETED') {
-            setGeneratedVideo(videoResult.result.data.video.url)
-            setState("completed")
-            setIsLoading(false)
+          try {
+            const videoResult = await VideoService.getVideoResult(result.request_id!)
+            console.log("Polling for video status:", videoResult); 
+
+            if ((videoResult as any).status === 'COMPLETED') {
+              setGeneratedVideo((videoResult as any).data.data.video.url)
+              setState("completed")
+              setIsLoading(false)
+              toast({
+                title: "Video Generated!",
+                description: "Your AI video has been generated successfully.",
+              })
+            } else if ((videoResult as any).status === 'FAILED' || (videoResult as any).status === 'CANCELLED') {
+              throw new Error((videoResult as any).error || 'Failed to get video result');
+            } else {
+              setTimeout(poll, 2000) // Poll every 2 seconds
+            }
+          } catch (error) {
             toast({
-              title: "Video Generated!",
-              description: "Your AI video has been generated successfully.",
+              title: "Video Generation Failed",
+              description: error instanceof Error ? error.message : "An error occurred while fetching video status.",
+              variant: "destructive",
             })
-          } else if (videoResult.status === 'FAILED' || videoResult.status === 'CANCELLED') {
-            throw new Error(videoResult.error || 'Failed to get video result');
-          } else {
-            setTimeout(poll, 2000) // Poll every 2 seconds
+            setState("captured") // Reset state
+            setIsLoading(false)
           }
         }
         poll()
