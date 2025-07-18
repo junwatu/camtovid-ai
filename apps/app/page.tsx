@@ -39,25 +39,6 @@ export default function AIVideoGenerator() {
     }
   }, [])
 
-  const startCamera = useCallback(async (mode: "user" | "environment") => {
-    stopCamera(); // Stop existing stream first
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: mode },
-      })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-      }
-    } catch {
-      toast({
-        title: "Camera Error",
-        description: "Unable to access camera. Please check permissions.",
-        variant: "destructive",
-      })
-    }
-  }, [toast, stopCamera])
-
   const getVideoDevices = useCallback(async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -68,11 +49,30 @@ export default function AIVideoGenerator() {
     }
   }, []);
 
+  const startCamera = useCallback(async (mode: "user" | "environment") => {
+    stopCamera(); // Stop existing stream first
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: mode },
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+      // Get updated list of devices after permissions are granted
+      await getVideoDevices();
+    } catch {
+      toast({
+        title: "Camera Error",
+        description: "Unable to access camera. Please check permissions.",
+        variant: "destructive",
+      })
+    }
+  }, [toast, stopCamera, getVideoDevices])
+
   const switchCamera = useCallback(() => {
-    const newFacingMode = facingMode === "user" ? "environment" : "user";
-    setFacingMode(newFacingMode);
-    startCamera(newFacingMode);
-  }, [facingMode, startCamera]);
+    setFacingMode(prev => prev === "user" ? "environment" : "user");
+  }, []);
 
   const capturePhoto = useCallback(() => {
     if (videoRef.current && canvasRef.current) {
@@ -102,8 +102,8 @@ export default function AIVideoGenerator() {
     setCapturedImage(null)
     setPrompt("")
     setState("camera")
-    startCamera(facingMode)
-  }, [startCamera, facingMode])
+    // The useEffect will handle starting the camera with the correct facingMode
+  }, [])
 
   const generateVideo = useCallback(async () => {
     if (!capturedImage || !prompt.trim()) {
@@ -194,12 +194,11 @@ export default function AIVideoGenerator() {
 
   // Start camera when component mounts and state is camera
   useEffect(() => {
-    getVideoDevices();
     if (state === "camera") {
-      startCamera(facingMode)
+      startCamera(facingMode);
     }
-    return () => stopCamera()
-  }, [])
+    return () => stopCamera();
+  }, [state, facingMode, startCamera, stopCamera])
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
