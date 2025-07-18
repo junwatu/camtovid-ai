@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
-import { Camera, RotateCcw, Download, Wand2, } from "lucide-react"
+import { useState, useRef, useCallback, useEffect } from "react"
+import { Camera, RotateCcw, Download, Wand2, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -23,16 +23,27 @@ export default function AIVideoGenerator() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [activeTab, setActiveTab] = useState("capture")
   const [generationStatus, setGenerationStatus] = useState<string | null>(null);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const { toast } = useToast()
 
-  const startCamera = useCallback(async () => {
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+    }
+  }, [])
+
+  const startCamera = useCallback(async (mode: "user" | "environment") => {
+    stopCamera(); // Stop existing stream first
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
+        video: { facingMode: mode },
       })
       streamRef.current = stream
       if (videoRef.current) {
@@ -45,14 +56,23 @@ export default function AIVideoGenerator() {
         variant: "destructive",
       })
     }
-  }, [toast])
+  }, [toast, stopCamera])
 
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop())
-      streamRef.current = null
+  const getVideoDevices = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter(device => device.kind === 'videoinput');
+      setVideoDevices(videoInputs);
+    } catch (error) {
+      console.error("Error enumerating video devices:", error);
     }
-  }, [])
+  }, []);
+
+  const switchCamera = useCallback(() => {
+    const newFacingMode = facingMode === "user" ? "environment" : "user";
+    setFacingMode(newFacingMode);
+    startCamera(newFacingMode);
+  }, [facingMode, startCamera]);
 
   const capturePhoto = useCallback(() => {
     if (videoRef.current && canvasRef.current) {
@@ -82,8 +102,8 @@ export default function AIVideoGenerator() {
     setCapturedImage(null)
     setPrompt("")
     setState("camera")
-    startCamera()
-  }, [startCamera])
+    startCamera(facingMode)
+  }, [startCamera, facingMode])
 
   const generateVideo = useCallback(async () => {
     if (!capturedImage || !prompt.trim()) {
@@ -173,12 +193,13 @@ export default function AIVideoGenerator() {
 
 
   // Start camera when component mounts and state is camera
-  useState(() => {
+  useEffect(() => {
+    getVideoDevices();
     if (state === "camera") {
-      startCamera()
+      startCamera(facingMode)
     }
     return () => stopCamera()
-  })
+  }, [])
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
@@ -220,7 +241,7 @@ export default function AIVideoGenerator() {
                         <>
                           <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
                           <canvas ref={canvasRef} className="hidden" />
-                          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-4">
                             <Button
                               onClick={capturePhoto}
                               size="lg"
@@ -228,6 +249,16 @@ export default function AIVideoGenerator() {
                             >
                               <Camera className="w-6 h-6" />
                             </Button>
+                            {videoDevices.length > 1 && (
+                               <Button
+                                 onClick={switchCamera}
+                                 size="lg"
+                                 variant="secondary"
+                                 className="rounded-full w-16 h-16 bg-white/90 hover:bg-white"
+                               >
+                                 <RefreshCw className="w-6 h-6" />
+                               </Button>
+                            )}
                           </div>
                         </>
                       )}
