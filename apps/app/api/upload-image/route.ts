@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fal } from '@fal-ai/client';
 
 // Configure the Fal.ai client
+const falKey = process.env.FAL_KEY || process.env.FAL_API_KEY;
+if (!falKey) {
+  throw new Error("FAL_KEY or FAL_API_KEY is not set in the environment variables");
+}
 fal.config({
-  credentials: process.env.FAL_KEY || process.env.FAL_API_KEY,
+  credentials: falKey,
 });
 
 export async function POST(request: NextRequest) {
@@ -18,21 +22,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert file to buffer
-    const buffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(buffer);
-
     // Upload file to Fal.ai storage
-    const uploadResult = await fal.storage.upload(uint8Array, {
-      content_type: file.type,
-      file_name: file.name,
-    });
+    const uploadUrl = await fal.storage.upload(file);
 
+    console.log(uploadUrl);
 
     return NextResponse.json({
       success: true,
-      url: uploadResult.url,
-      file_name: uploadResult.file_name
+      url: uploadUrl,
+      file_name: file.name
     });
 
   } catch (error) {

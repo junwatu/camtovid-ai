@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fal } from '@fal-ai/client';
 
 // Configure the Fal.ai client
+const falKey = process.env.FAL_KEY || process.env.FAL_API_KEY;
+if (!falKey) {
+  throw new Error("FAL_KEY or FAL_API_KEY is not set in the environment variables");
+}
 fal.config({
-  credentials: process.env.FAL_KEY || process.env.FAL_API_KEY,
+  credentials: falKey,
 });
 
 export async function POST(request: NextRequest) {
@@ -28,7 +32,6 @@ export async function POST(request: NextRequest) {
         prompt,
         image_url,
         duration,
-        aspect_ratio,
         cfg_scale,
         negative_prompt: "blur, distort, and low quality"
       },

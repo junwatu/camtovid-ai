@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fal } from '@fal-ai/client';
 
 // Configure the Fal.ai client
+const falKey = process.env.FAL_KEY || process.env.FAL_API_KEY;
+if (!falKey) {
+  throw new Error("FAL_KEY or FAL_API_KEY is not set in the environment variables");
+}
 fal.config({
-  credentials: process.env.FAL_KEY || process.env.FAL_API_KEY,
+  credentials: falKey,
 });
 
 export async function GET(request: NextRequest) {
@@ -18,11 +22,21 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await fal.queue.status("fal-ai/kling-video/v2.1/pro/image-to-video", {
+    // First, check the status of the request
+    const status = await fal.queue.status("fal-ai/kling-video/v2.1/pro/image-to-video", {
         requestId: requestId,
         logs: true,
     });
-    return NextResponse.json(result);
+
+    // If completed, fetch the actual result
+    if (status.status === 'COMPLETED') {
+        const result = await fal.queue.result("fal-ai/kling-video/v2.1/pro/image-to-video", {
+            requestId: requestId,
+        });
+        return NextResponse.json({ ...status, data: result });
+    }
+
+    return NextResponse.json(status);
   } catch (error) {
     console.error('Error fetching result:', error);
     return NextResponse.json(
