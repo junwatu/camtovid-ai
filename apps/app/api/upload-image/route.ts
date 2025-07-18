@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       file_name: file.name,
     });
 
+
     return NextResponse.json({
       success: true,
       url: uploadResult.url,

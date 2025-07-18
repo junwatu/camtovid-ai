@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { VideoService } from "@/lib/video-service"
+import Image from "next/image";
 
 type AppState = "camera" | "captured" | "generating" | "completed"
 
@@ -18,7 +18,6 @@ export default function AIVideoGenerator() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [prompt, setPrompt] = useState("")
   const [generatedVideo, setGeneratedVideo] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -35,7 +34,7 @@ export default function AIVideoGenerator() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Camera Error",
         description: "Unable to access camera. Please check permissions.",
@@ -208,9 +207,11 @@ export default function AIVideoGenerator() {
 
                       {(state === "captured" || state === "generating" || state === "completed") && capturedImage && (
                         <>
-                          <img
+                          <Image
                             src={capturedImage || "/placeholder.svg"}
                             alt="Captured"
+                            width={1080}
+                            height={1440}
                             className="w-full h-full object-cover"
                           />
                           <div className="absolute top-4 right-4">

@@ -11,7 +11,7 @@ export interface VideoGenerationResponse {
   success: boolean;
   video_url?: string;
   request_id?: string;
-  data?: any;
+  data?: Record<string, unknown>;
   error?: string;
   details?: string;
 }
