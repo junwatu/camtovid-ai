@@ -275,7 +275,7 @@ export default function AIVideoGenerator() {
                               onClick={retakePhoto}
                               variant="secondary"
                               size="sm"
-                              className="bg-white/90 hover:bg-white"
+                              className="bg-white/90 hover:bg-white text-gray-900"
                             >
                               <RotateCcw className="w-4 h-4 mr-2" />
                               Retake
@@ -364,7 +364,7 @@ export default function AIVideoGenerator() {
                       <div className="flex flex-col gap-3">
                 
 
-                        <Button onClick={downloadVideo} variant="outline" className="w-full bg-transparent" size="lg">
+                        <Button onClick={downloadVideo} variant="outline" className="w-full bg-transparent text-gray-900" size="lg">
                           <Download className="w-4 h-4 mr-2" />
                           Download Video
                         </Button>
