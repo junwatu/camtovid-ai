@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
-import { Camera, RotateCcw, Download, Wand2, Play, Pause } from "lucide-react"
+import { Camera, RotateCcw, Download, Wand2, } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { VideoService } from "@/lib/video-service"
 
 type AppState = "camera" | "captured" | "generating" | "completed"
 
@@ -94,41 +95,44 @@ export default function AIVideoGenerator() {
     setState("generating")
     setIsLoading(true)
 
-    // Mock API call with setTimeout to simulate AI processing
     try {
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      const result = await VideoService.uploadAndGenerateVideo(capturedImage, prompt);
 
-      // Create a mock video blob URL (in real implementation, this would come from the API)
-      const mockVideoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-      setGeneratedVideo(mockVideoUrl)
-      setState("completed")
-
-      toast({
-        title: "Video Generated!",
-        description: "Your AI video has been generated successfully.",
-      })
+      if (result.success && result.request_id) {
+        // In a real-world app, you would use a WebSocket or a service like Pusher
+        // to receive the result from the webhook in real-time. For this example,
+        // we'll continue to use polling.
+        const poll = async () => {
+          const videoResult = await VideoService.getVideoResult(result.request_id!)
+          if (videoResult.status === 'COMPLETED') {
+            setGeneratedVideo(videoResult.result.data.video.url)
+            setState("completed")
+            setIsLoading(false)
+            toast({
+              title: "Video Generated!",
+              description: "Your AI video has been generated successfully.",
+            })
+          } else if (videoResult.status === 'FAILED' || videoResult.status === 'CANCELLED') {
+            throw new Error(videoResult.error || 'Failed to get video result');
+          } else {
+            setTimeout(poll, 2000) // Poll every 2 seconds
+          }
+        }
+        poll()
+      } else {
+        throw new Error(result.error || 'Failed to generate video');
+      }
     } catch (error) {
       toast({
         title: "Generation Failed",
-        description: "Failed to generate video. Please try again.",
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       })
       setState("captured")
-    } finally {
       setIsLoading(false)
     }
   }, [capturedImage, prompt, toast])
 
-  const toggleVideoPlayback = useCallback(() => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause()
-      } else {
-        videoRef.current.play()
-      }
-      setIsPlaying(!isPlaying)
-    }
-  }, [isPlaying])
 
   const downloadVideo = useCallback(() => {
     if (generatedVideo) {
@@ -146,10 +150,6 @@ export default function AIVideoGenerator() {
     }
   }, [generatedVideo, toast])
 
-  const regenerateVideo = useCallback(() => {
-    setGeneratedVideo(null)
-    setState("captured")
-  }, [])
 
   // Start camera when component mounts and state is camera
   useState(() => {
