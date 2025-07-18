@@ -21,6 +21,8 @@ export default function AIVideoGenerator() {
   const [generatedVideo, setGeneratedVideo] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [activeTab, setActiveTab] = useState("capture")
+  const [generationStatus, setGenerationStatus] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -95,6 +97,7 @@ export default function AIVideoGenerator() {
 
     setState("generating")
     setIsLoading(true)
+    setGenerationStatus("initializing");
 
     try {
       const result = await VideoService.uploadAndGenerateVideo(capturedImage, prompt);
@@ -106,12 +109,15 @@ export default function AIVideoGenerator() {
         const poll = async () => {
           try {
             const videoResult = await VideoService.getVideoResult(result.request_id!)
+            setGenerationStatus((videoResult as any).status);
             console.log("Polling for video status:", videoResult); 
 
             if ((videoResult as any).status === 'COMPLETED') {
               setGeneratedVideo((videoResult as any).data.data.video.url)
               setState("completed")
               setIsLoading(false)
+              setGenerationStatus(null);
+              setActiveTab("video") // Switch to the video tab
               toast({
                 title: "Video Generated!",
                 description: "Your AI video has been generated successfully.",
@@ -129,6 +135,7 @@ export default function AIVideoGenerator() {
             })
             setState("captured") // Reset state
             setIsLoading(false)
+            setGenerationStatus(null);
           }
         }
         poll()
@@ -143,8 +150,9 @@ export default function AIVideoGenerator() {
       })
       setState("captured")
       setIsLoading(false)
+      setGenerationStatus(null);
     }
-  }, [capturedImage, prompt, toast])
+  }, [capturedImage, prompt, toast, setActiveTab])
 
 
   const downloadVideo = useCallback(() => {
@@ -189,7 +197,12 @@ export default function AIVideoGenerator() {
           {/* Main Tabbed Interface */}
           <Card>
             <CardContent className="p-0">
-              <Tabs defaultValue="capture" className="w-full">
+              <Tabs 
+                value={activeTab}
+                onValueChange={setActiveTab}
+                defaultValue="capture" 
+                className="w-full"
+              >
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="capture">Capture</TabsTrigger>
                   <TabsTrigger value="video" disabled={!generatedVideo}>
@@ -275,7 +288,7 @@ export default function AIVideoGenerator() {
                           {isLoading ? (
                             <>
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                              Generating Video...
+                              {`Generating Video... ${generationStatus ? `(${(generationStatus as string).toLowerCase()})` : ''}`}
                             </>
                           ) : (
                             <>
