@@ -252,8 +252,7 @@ export default function AIVideoGenerator() {
                                <Button
                                  onClick={switchCamera}
                                  size="lg"
-                                 variant="secondary"
-                                 className="rounded-full w-16 h-16 bg-white/90 hover:bg-white text-gray-900"
+                                 className="rounded-full w-16 h-16 bg-white hover:bg-gray-100 text-gray-900"
                                >
                                  <RefreshCw className="w-6 h-6" />
                                </Button>
