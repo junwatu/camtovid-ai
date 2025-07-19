@@ -25,6 +25,7 @@ export default function AIVideoGenerator() {
   const [generationStatus, setGenerationStatus] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
 
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -120,7 +121,16 @@ export default function AIVideoGenerator() {
     setGenerationStatus("initializing");
 
     try {
-      const result = await VideoService.uploadAndGenerateVideo(capturedImage, prompt);
+      const uploadResult = await VideoService.uploadImage(capturedImage);
+      if (!uploadResult.success || !uploadResult.url) {
+        throw new Error(uploadResult.error || 'Image upload failed');
+      }
+      setUploadedImageUrl(uploadResult.url);
+
+      const result = await VideoService.generateVideo({
+        image_url: uploadResult.url,
+        prompt: prompt,
+      });
 
       if (result.success && result.request_id) {
         // In a real-world app, you would use a WebSocket or a service like Pusher
@@ -133,7 +143,8 @@ export default function AIVideoGenerator() {
             console.log("Polling for video status:", videoResult); 
 
             if ((videoResult as any).status === 'COMPLETED') {
-              setGeneratedVideo((videoResult as any).data.data.video.url)
+              const generatedVideoUrl = (videoResult as any).data.data.video.url;
+              setGeneratedVideo(generatedVideoUrl)
               setState("completed")
               setIsLoading(false)
               setGenerationStatus(null);
@@ -142,6 +153,20 @@ export default function AIVideoGenerator() {
                 title: "Video Generated!",
                 description: "Your AI video has been generated successfully.",
               })
+
+              // Save data to GridDB
+              if (uploadedImageUrl) {
+                await VideoService.saveData({
+                  imageURL: uploadedImageUrl,
+                  prompt: prompt,
+                  generatedVideoURL: generatedVideoUrl
+                });
+                toast({
+                  title: "Data Saved!",
+                  description: "Video data saved to GridDB successfully.",
+                });
+              }
+
             } else if ((videoResult as any).status === 'FAILED' || (videoResult as any).status === 'CANCELLED') {
               throw new Error((videoResult as any).error || 'Failed to get video result');
             } else {
@@ -172,7 +197,7 @@ export default function AIVideoGenerator() {
       setIsLoading(false)
       setGenerationStatus(null);
     }
-  }, [capturedImage, prompt, toast, setActiveTab])
+  }, [capturedImage, prompt, toast, setActiveTab, uploadedImageUrl])
 
 
   const downloadVideo = useCallback(() => {

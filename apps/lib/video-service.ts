@@ -24,6 +24,20 @@ export interface ImageUploadResponse {
   details?: string;
 }
 
+export interface SaveDataRequest {
+  imageURL: string;
+  prompt: string;
+  generatedVideoURL: string;
+}
+
+export interface SaveDataResponse {
+  success: boolean;
+  message?: string;
+  id?: number;
+  error?: string;
+  details?: string;
+}
+
 export class VideoService {
   private static baseUrl = '/api';
 
@@ -150,6 +164,36 @@ export class VideoService {
       return {
         success: false,
         error: 'Failed to get video result',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Save video data to GridDB
+   */
+  static async saveData(data: SaveDataRequest): Promise<SaveDataResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/save-data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to save data');
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Save data error:', error);
+      return {
+        success: false,
+        error: 'Failed to save data',
         details: error instanceof Error ? error.message : 'Unknown error'
       };
     }
