@@ -119,13 +119,13 @@ export async function GET(request: NextRequest) {
       // Search for specific ID
       query = {
         type: 'sql-select',
-        stmt: `SELECT * FROM genvoiceai WHERE id = ${parseInt(id)}`
+        stmt: `SELECT * FROM camvidai WHERE id = ${parseInt(id)}`
       };
     } else {
       // Get recent entries
       query = {
         type: 'sql-select',
-        stmt: `SELECT * FROM genvoiceai ORDER BY id DESC LIMIT ${parseInt(limit)}`
+        stmt: `SELECT * FROM camvidai ORDER BY id DESC LIMIT ${parseInt(limit)}`
       };
     }
 
