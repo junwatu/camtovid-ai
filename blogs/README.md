@@ -414,7 +414,7 @@ Here, step by step, is implemented in this app until the video is ready:
     // ... existing code ...
  ```
 
- Once the video generation is complete, the video will be displayed in the "Generated Video" UI tab.
+ Once the video generation is complete, the video will be displayed in the **Generated Video** UI tab. More on this in the [User Interface](#user-interface) section.
 
 ## Saving Data to GridDB
 
