@@ -1,4 +1,4 @@
-# Generate Fun Video From Camera Shoot using Kling AI
+# Generate Fun AI Videos from Your Camera Footage with Kling
 
 ![cover](images/cover.png)
 
