@@ -426,6 +426,56 @@ The sava data happening in the `app\page.tsx` main component:
 
 This `saveData` function calls the `/api/save-data` endpoint to perform the database operation.
 
+## Server Routes
+
+This web app exposed some API.  Here is a table summarizing all the API routes used in this web application, along with their HTTP methods and descriptions.
+
+| Route                  | HTTP Method | Description                                                                                             |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------------- |
+| `/api/upload-image`    | `POST`      | Receives an image file from the client and uploads it to Fal.ai's temporary storage, returning a URL.   |
+| `/api/generate-video`  | `POST`      | Submits a job to the Fal.ai Kling AI model to generate a video using an image URL and a text prompt.      |
+| `/api/get-video`       | `GET`       | Polls the Fal.ai service to check the status of a video generation job using its `request_id`.            |
+| `/api/save-data`       | `POST`      | Saves the metadata for a generated video (image URL, prompt, video URL) into the GridDB database.         |
+
+## Read Data from GridDB
+
+The `GET` method in the `/api/save-data/route.ts` file that is responsible for fetching all records from the database. Here's how it works:
+
+```ts
+// ... existing code ...
+// Optional: Add GET method to retrieve data
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const limit = searchParams.get('limit') || '10';
+// ... existing code ...
+    let query;
+    if (id) {
+      // Search for specific ID
+      query = {
+        type: 'sql-select',
+        stmt: `SELECT * FROM camvidai WHERE id = ${parseInt(id)}`
+      };
+    } else {
+      // Get recent entries
+      query = {
+        type: 'sql-select',
+        stmt: `SELECT * FROM camvidai ORDER BY id DESC LIMIT ${parseInt(limit)}`
+      };
+    }
+
+    const result = await dbClient.searchData([query]);
+// ... existing code ...
+```
+
+This `GET` function handles two cases:
+
+1.  **Fetch by ID:** If an `id` is provided as a query parameter (e.g., `/api/save-data?id=123`), it fetches that specific record.
+2.  **Fetch All (Recent):** If no `id` is provided, it fetches the most recent entries from the `camvidai` container, ordering them by ID in descending order. It defaults to a `limit` of 10 records, but this can be changed with a query parameter (e.g., `/api/save-data?limit=50`).
+
+So, to get all the data (or at least the most recent set), you would make a `GET` request to `/api/save-data`.
+
 
 ## User Interface
 
