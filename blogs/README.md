@@ -31,7 +31,7 @@
 
 ## What This Blog is About
 
-Capturing a beautiful moment or any object in real life that you like from a camera and using AI to transform it into fun, stylized clips is a great way to engage users and showcase creative technology. 
+Using your camera to capture memorable moments or interesting objects, then transforming them into creative, stylized video clips with AI, is an exciting way to engage users and demonstrate the power of modern technology.
 
 In this guide, we build a developer-friendly pipeline using Next.js for the frontend, Fal.ai as a serverless inference runtime, Kling AI for video generation, and GridDB Cloud for real-time metadata storage. We’ll walk through how to capture frames from the webcam, send them to Kling for enhancement, log metadata (image URL, applied effects, which is the prompt, and generated video URL) to GridDB, and render the final video.
 
