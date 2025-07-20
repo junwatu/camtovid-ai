@@ -125,4 +125,82 @@ When generation is done the metadata: image URL, prompt, and generated video URL
 
 ### Camera Captures
 
-### 
+The `use-camera.ts` is a `useCamera` custom hook, which encapsulates all the logic for controlling the camera, including starting, stopping, switching, and capturing a photo. The `capturePhoto` function is the one that actually captures the image from the video stream and returns it as a base64-encoded JPEG.
+
+```ts
+// ... existing code ...
+  const capturePhoto = useCallback(() => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current
+      const video = videoRef.current
+      const context = canvas.getContext('2d')
+
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+
+      if (context) {
+        context.drawImage(video, 0, 0)
+        const imageData = canvas.toDataURL('image/jpeg')
+        stopCamera()
+        optionsRef.current.onSuccess?.('Photo captured successfully')
+        return imageData
+      }
+    }
+    optionsRef.current.onError?.('Failed to capture photo')
+    return null
+  }, [stopCamera])
+// ... existing code ...
+```
+
+The `app/page.tsx` is the main page component. It uses the `useCamera` hook to get the `capturePhoto` function and other camera-related state and methods. The `handleCapturePhoto` function is called when the user clicks the capture button. This function calls `capturePhoto` from the hook and then updates the application state with the captured image data.
+
+```ts
+// ... existing code ...
+  // Handle photo capture
+  const handleCapturePhoto = () => {
+    const imageData = capturePhoto()
+    if (imageData) {
+      setCapturedImage(imageData)
+      setState('captured')
+    }
+  }
+// ... existing code ...
+```
+
+### Image Prompt
+
+In the `app/page.tsx` there is a prompt input that only showed only after a photo has been captured `(state === 'captured')`.
+
+```ts
+// ... existing code ...
+                {/* Prompt Input Section - Only show after photo is captured */}
+                {(state === "captured" || state === "generating" || state === "completed") && (
+                  <div>
+                    <div className="space-y-2">
+                      <Label htmlFor="prompt" className="text-lg font-semibold">
+                        2. Enter Your Creative Prompt
+                      </Label>
+                      <Textarea
+                        id="prompt"
+                        placeholder="e.g., a majestic lion roaring on a cliff, cinematic lighting"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        className="min-h-[80px] text-base"
+                        disabled={state === "generating"}
+                      />
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="video" className="p-6">
+                <div className="space-y-6">
+                  {/* Video and Generation status */}
+// ... existing code ...
+```
+
+Along with the `capturedImage`, this `prompt` will be used to generate video. This will happend if the user vlick the `Generate Video` button.
+
+### Generate Video Flow in The Client
+
+
