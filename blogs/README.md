@@ -123,4 +123,6 @@ When generation is done the metadata: image URL, prompt, and generated video URL
 
 ## Technical Overview
 
+### Camera Captures
+
 ### 
