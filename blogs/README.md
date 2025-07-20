@@ -273,7 +273,7 @@ The AI model we use to generate video is [Kling 2.1](https://fal.ai/models/fal-a
 
 Here, step by step, is implemented in this app until the video is ready:
 
- 1. Initiating polling.
+#### 1. Initiating polling.
 
  The `useVideoGeneration` hook in `hooks/use-video-generation.ts` doesn't just fire and forget. After submitting the job and getting a `request_id`, it starts a polling mechanism to repeatedly check the status of the generation job.
 
@@ -309,7 +309,7 @@ Here, step by step, is implemented in this app until the video is ready:
     // ... existing code ...
  ```
 
- 2. Checking the job status.
+#### 2. Checking the job status.
 
  The poll function calls `VideoService.getVideoResult`, which is responsible for fetching the latest status of the video generation job.
 
@@ -339,7 +339,7 @@ Here, step by step, is implemented in this app until the video is ready:
     // ... existing code ...
  ```
 
- 3. Call the API endpoint for a status check.
+#### 3. Call the API endpoint for a status check.
 
  The `VideoService` calls the `/api/get-video` endpoint. This endpoint uses the `fal-ai` client library to get the status of the job from Fal.ai using the `request_id`.
 
@@ -366,7 +366,7 @@ Here, step by step, is implemented in this app until the video is ready:
     // ... existing code ...
  ```
     
- 4. Handling video when the status is complete.
+#### 4. Handling video when the status is complete.
 
  Once the polling mechanism receives a `COMPLETED` status, the `useVideoGeneration` hook updates the application state with the generated video's URL and calls the `onSuccess` callback that was passed to it from the main page component.
 
