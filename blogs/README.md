@@ -267,6 +267,127 @@ The `generateVideo` will call the the `/api/generate-video` endpoint, which in t
 
 ### Kling 2.1 from Fal
 
+The AI model we use to generate video is [Kling 2.1](https://fal.ai/models/fal-ai/kling-video/v2.1/pro/image-to-video). Like other models on Fal, it is best accessed asynchronously. After the video generation job is submitted to Fal.ai, the application enters a monitoring phase to wait for the video to be ready. This is handled by polling for the result in an asynchronous process.
+
+Here step by step implemented in this app until the video is ready:
+
+ 1. Initiating polling.
+
+    The `useVideoGeneration` hook in `hooks/use-video-generation.ts` doesn't just fire and forget. After submitting the job and getting a `request_id`, it starts a polling mechanism to repeatedly check the status of the generation job.
+
+    ```ts
+        // ... existing code ...
+      if (result.success && result.request_id) {
+        const imageUrl = uploadResult.url
+        
+        // Polling function
+        const poll = async () => {
+          try {
+            const videoResult = await VideoService.getVideoResult(result.request_id!)
+            const status = (videoResult as any).status
+            
+            setGenerationStatus(status)
+            options.onStatusChange?.(status)
+
+            if (status === 'COMPLETED') {
+            // ... existing code ...
+            } else if (status === 'FAILED' || status === 'CANCELLED') {
+            // ... existing code ...
+            } else {
+              // Continue polling
+              setTimeout(poll, pollInterval)
+            }
+          } catch (error) {
+          // ... existing code ...
+          }
+        }
+        
+        poll()
+      }
+    // ... existing code ...
+    ```
+
+ 2. Checking the job status.
+
+    The poll function calls `VideoService.getVideoResult`, which is responsible for fetching the latest status of the video generation job.
+
+    ```ts
+        // ... existing code ...
+      /**
+       * Get the result of a video generation task
+       */
+      static async getVideoResult(requestId: string): Promise<VideoResultResponse> {
+        try {
+          const response = await fetch(`${this.baseUrl}/get-video?request_id=${requestId}`);
+          const result = await response.json();
+    
+          if (!response.ok) {
+            throw new Error(result.error || 'Failed to get video result');
+          }
+    
+          return result;
+        } catch (error) {
+          return {
+            success: false,
+            error: 'Failed to process request',
+            details: error instanceof Error ? error.message : 'Unknown error'
+          };
+        }
+      }
+    // ... existing code ...
+    ```
+
+ 3. Call API endpoint for status check.
+
+     The `VideoService` calls the `/api/get-video` endpoint. This endpoint uses the `fal-ai` client library to get the status of the job from Fal.ai using the `request_id`.
+
+     ```ts
+         // ... existing code ...
+    export async function GET(request: NextRequest) {
+      try {
+        const { searchParams } = new URL(request.url)
+        const requestId = searchParams.get('request_id')
+    
+        if (!requestId) {
+          return NextResponse.json(
+            { error: 'Missing request_id parameter' },
+            { status: 400 }
+          );
+        }
+    
+        const result = await fal.queue.get(requestId);
+    
+        return NextResponse.json(result);
+    
+      } catch (error) {
+        return NextResponse.json(
+    // ... existing code ...
+    ```
+    
+ 4. Handling video when the status is complete.
+
+    Once the polling mechanism receives a `COMPLETED` status, the `useVideoGeneration` hook updates the application state with the generated video's URL and calls the `onSuccess` callback that was passed to it from the main page component.
+
+    ```ts
+        // ... existing code ...
+            if (status === 'COMPLETED') {
+              const generatedVideoUrl = (videoResult as any).data.data.video.url
+              setGeneratedVideo(generatedVideoUrl)
+              setState('completed')
+              setIsLoading(false)
+              setGenerationStatus(null)
+              
+              options.onSuccess?.(generatedVideoUrl, imageUrl, prompt)
+              
+            }
+    // ... existing code ...
+    ```
+    
+    After this video generation completion than the app will saving the metadata to GridDB Cloud.
+
+## 
+
+
 
 
 
