@@ -382,10 +382,47 @@ Here step by step implemented in this app until the video is ready:
             }
     // ... existing code ...
     ```
-    
-    After this video generation completion than the app will saving the metadata to GridDB Cloud.
 
-## 
+## Saving Data to GridDB
+
+After the video generation completion than the app will saving the metadata to GridDB Cloud. This saves the metadata of the generated video (the original image URL from Fal.ai, the user's prompt, and the new video URL) to your GridDB database.
+
+So, here is the data schema used in the database that you can find in the `lib/types/griddb.types.ts` file:
+
+```ts
+// Types for container data
+export interface GridDBData {
+	id: string | number;
+	imageURL: string;
+	prompt: string;
+	generatedVideoURL: string;
+}
+```
+
+The sava data happening in the `app\page.tsx` main component:
+
+```ts
+    // ... existing code ...
+      // Video generation management
+      const {
+    // ... existing code ...
+      } = useVideoGeneration({
+        onSuccess: async (videoUrl, imageUrl, promptText) => {
+          setState('completed')
+          setActiveTab('video')
+          
+    // ... existing code ...
+    
+          // Auto-save data
+          const saved = await saveData({
+            imageURL: imageUrl,
+            prompt: promptText,
+            generatedVideoURL: videoUrl,
+          })
+    // ... existing code ...
+```
+
+This `saveData` function calls the `/api/save-data` endpoint to perform the database operation.
 
 
 
