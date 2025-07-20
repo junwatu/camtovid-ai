@@ -110,6 +110,8 @@ npm run dev
 
 Open the application in your browser at [http://localhost:3000](http://localhost:3000). You also need to allow the browser to access your camera. If you access the web application from mobile device there will option to select between rear and back camera.
 
+![app-allow-camera](images/allow-camera.png)
+
 ## Architecture
 
 ![arc](images/arch.png)
@@ -425,6 +427,15 @@ The sava data happening in the `app\page.tsx` main component:
 This `saveData` function calls the `/api/save-data` endpoint to perform the database operation.
 
 
+## User Interface
+
+![web app](images/app.png)
+
+The user interface is built using Next.js. It has three main views:
+
+1. Capture Tab.
+2. Prompt Input (shows only after image captured).
+3. Generated Video Tab.
 
 
 
