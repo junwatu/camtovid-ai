@@ -426,7 +426,7 @@ The sava data happening in the `app\page.tsx` main component:
 
 This `saveData` function calls the `/api/save-data` endpoint to perform the database operation.
 
-## Server Routes
+## API Routes
 
 This web app exposed some API.  Here is a table summarizing all the API routes used in this web application, along with their HTTP methods and descriptions.
 
@@ -439,7 +439,9 @@ This web app exposed some API.  Here is a table summarizing all the API routes u
 
 ## Read Data from GridDB
 
-The `GET` method in the `/api/save-data/route.ts` file that is responsible for fetching all records from the database. Here's how it works:
+The `GET` method in the `/api/save-data/route.ts` file that is responsible for fetching all records from the database. 
+
+Here's how it works:
 
 ```ts
 // ... existing code ...
