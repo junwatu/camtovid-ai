@@ -199,8 +199,74 @@ In the `app/page.tsx` there is a prompt input that only showed only after a phot
 // ... existing code ...
 ```
 
-Along with the `capturedImage`, this `prompt` will be used to generate video. This will happend if the user vlick the `Generate Video` button.
+Along with the `capturedImage`, this `prompt` will be used to generate video. This will happened if the user click the `Generate Video` button.
 
 ### Generate Video Flow in The Client
+
+Kling 2.1 API from the Fal needs two main parameters:
+
+1. **Image reference**, which is the image tha user captured from the camera
+2. **Prompt** for the video creation.
+
+Before the video generation, the captured image need should be saved first. In this app, we use fal server to save the captured image.
+
+```ts
+    // ... existing code ...
+      static async uploadImage(imageData: string): Promise<ImageUploadResponse> {
+        try {
+          // Convert data URL to blob
+          const response = await fetch(imageData);
+          const blob = await response.blob();
+          
+          // Create form data
+          const formData = new FormData();
+          formData.append('file', blob, 'captured-image.jpg');
+    
+          const uploadResponse = await fetch(`${this.baseUrl}/upload-image`, {
+            method: 'POST',
+            body: formData,
+          });
+    // ... existing code ...
+```
+
+The upload process is handled by the `/api/upload-image` endpoint. This route uses the Fal.ai client `(@fal-ai/client)` to upload it to Fal.ai's storage. It then returns the public URL of the uploaded image.
+
+```ts 
+    // ... existing code ...
+    import { fal } from '@fal-ai/client';
+    // ... existing code ...
+        // Upload file to Fal.ai storage
+        const uploadUrl = await fal.storage.upload(file);
+    
+        return NextResponse.json({
+          success: true,
+          url: uploadUrl,
+          file_name: file.name
+        });
+    // ... existing code ...
+```
+
+After successfully image upload and we get the image URL, the `useVideoGeneration` hook will call `VideoSeevice.generateVideo`, passing the image URL and the user's `prompt`:
+
+```ts
+    // ... existing code ...
+          setUploadedImageUrl(uploadResult.url)
+    
+          // Start video generation
+          setState('generating')
+          setGenerationStatus('initializing')
+          
+          const result = await VideoService.generateVideo({
+            image_url: uploadResult.url,
+            prompt: prompt,
+          })
+    // ... existing code ...
+```
+
+The `generateVideo` will call the the `/api/generate-video` endpoint, which in turn calls the Fal.ai Kling AI model to start the video generation job.
+
+### Kling 2.1 from Fal
+
+
 
 
