@@ -15,17 +15,17 @@
   - [4. Run the project](#4-run-the-project)
   - [5. Open the application](#5-open-the-application)
 - [Architecture](#architecture)
-- [Technical Overview](#technical-overview)
+- [Technical Implementations](#technical-implementations)
   - [Camera Captures](#camera-captures)
   - [Image Prompt](#image-prompt)
   - [Generate Video](#generate-video)
   - [Kling 2.1 from Fal](#kling-21-from-fal)
-    - [1. Initiating polling.](#1-initiating-polling)
-    - [2. Checking the job status.](#2-checking-the-job-status)
-    - [3. Call the API endpoint for a status check.](#3-call-the-api-endpoint-for-a-status-check)
-    - [4. Handling video when the status is complete.](#4-handling-video-when-the-status-is-complete)
-- [Saving Data to GridDB](#saving-data-to-griddb)
+    - [1. Initiating polling](#1-initiating-polling)
+    - [2. Checking the job status](#2-checking-the-job-status)
+    - [3. Call the API endpoint for a status check](#3-call-the-api-endpoint-for-a-status-check)
+    - [4. Handling video when the status is complete](#4-handling-video-when-the-status-is-complete)
 - [API Routes](#api-routes)
+- [Saving Data to GridDB](#saving-data-to-griddb)
 - [Read Data from GridDB](#read-data-from-griddb)
 - [User Interface](#user-interface)
 
@@ -152,7 +152,7 @@ The Next.js frontend sends both the image and prompt to Fal AI’s Kling 2.1 mod
 When generation is done, the metadata: image URL, prompt, and generated video URL will be saved to the GridDB Cloud.
 
 
-## Technical Overview
+## Technical Implementations
 
 ### Camera Captures
 
@@ -416,6 +416,18 @@ Here, step by step, is implemented in this app until the video is ready:
 
  Once the video generation is complete, the video will be displayed in the **Generated Video** UI tab. More on this in the [User Interface](#user-interface) section.
 
+ ## API Routes
+
+This web app exposed some API.  Here is a table summarizing all the API routes used in this web application, along with their HTTP methods and descriptions.
+
+| Route                  | HTTP Method | Description                                                                                             |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------------- |
+| `/api/upload-image` | `POST` | Receives an image file from the client and uploads it to Fal.ai's temporary storage, returning a URL.   |
+| `/api/generate-video` | `POST` | Submits a job to the Fal.ai Kling AI model to generate a video using an image URL and a text prompt.      |
+| `/api/get-video` | `GET` | Polls the Fal.ai service to check the status of a video generation job using its `request_id`.            |
+| `/api/save-data` | `POST` | Saves the metadata for a generated video (image URL, prompt, video URL) into the GridDB database.         |
+
+
 ## Saving Data to GridDB
 
 After the video generation is completed, the app will save the metadata to GridDB Cloud. This saves the metadata of the generated video (the original image URL from Fal.ai, the user's prompt, and the new video URL) to your GridDB database.
@@ -456,17 +468,6 @@ The sava data happening in the `app\page.tsx` main component:
 ```
 
 This `saveData` function calls the `/api/save-data` endpoint to perform the database operation.
-
-## API Routes
-
-This web app exposed some API.  Here is a table summarizing all the API routes used in this web application, along with their HTTP methods and descriptions.
-
-| Route                  | HTTP Method | Description                                                                                             |
-| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------------- |
-| `/api/upload-image` | `POST` | Receives an image file from the client and uploads it to Fal.ai's temporary storage, returning a URL.   |
-| `/api/generate-video` | `POST` | Submits a job to the Fal.ai Kling AI model to generate a video using an image URL and a text prompt.      |
-| `/api/get-video` | `GET` | Polls the Fal.ai service to check the status of a video generation job using its `request_id`.            |
-| `/api/save-data` | `POST` | Saves the metadata for a generated video (image URL, prompt, video URL) into the GridDB database.         |
 
 ## Read Data from GridDB
 
