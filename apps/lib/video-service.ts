@@ -67,7 +67,6 @@ export class VideoService {
 
       return result;
     } catch (error) {
-      console.error('Upload error:', error);
       return {
         success: false,
         error: 'Failed to upload image',
@@ -97,7 +96,6 @@ export class VideoService {
 
       return result;
     } catch (error) {
-      console.error('Video generation error:', error);
       return {
         success: false,
         error: 'Failed to generate video',
@@ -137,7 +135,6 @@ export class VideoService {
 
       return await this.generateVideo(videoRequest);
     } catch (error) {
-      console.error('Upload and generate error:', error);
       return {
         success: false,
         error: 'Failed to process request',
@@ -160,7 +157,6 @@ export class VideoService {
 
       return result;
     } catch (error) {
-      console.error('Get video result error:', error);
       return {
         success: false,
         error: 'Failed to get video result',
@@ -190,7 +186,6 @@ export class VideoService {
 
       return result;
     } catch (error) {
-      console.error('Save data error:', error);
       return {
         success: false,
         error: 'Failed to save data',

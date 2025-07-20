@@ -13,8 +13,6 @@ export function createGridDBClient(config: GridDBConfig) {
 	const DEFAULT_CONTAINER_NAME = "camvidai";
 
 	async function makeRequest(path: string, payload: unknown, method?: string): Promise<GridDBResponse> {
-		console.log(`path: ${baseUrl}${path}`);
-		console.log(`authToken: ${authToken}`);
 		try {
 			const response = await fetch(`${baseUrl}${path}`, {
 				method: method || 'POST',
@@ -35,8 +33,6 @@ export function createGridDBClient(config: GridDBConfig) {
 					responseText
 				);
 			}
-
-			console.log(`Response: ${responseText}`);
 
 			return processResponse(responseText);
 		} catch (error) {
@@ -90,7 +86,6 @@ export function createGridDBClient(config: GridDBConfig) {
 			if (response.status === 404) {
 				return await makeRequest('/containers', payload);
 			}
-			console.log(`Container ${containerName} already exists`);
 			return { message: `Container ${containerName} already exists` };
 		} catch (error: unknown) {
 			if (error instanceof GridDBError) {
@@ -108,7 +103,6 @@ export function createGridDBClient(config: GridDBConfig) {
 		data: GridDBData;
 		containerName?: string;
 	}): Promise<GridDBResponse> {
-		console.log(data);
 		try {
 			const row = [
 				parseInt(data.id.toString()),
@@ -129,7 +123,6 @@ export function createGridDBClient(config: GridDBConfig) {
 	}
 
 	async function searchData(queries: GridDBQuery[]): Promise<GridDBResponse> {
-		console.log(queries);
 		try {
 			if (!Array.isArray(queries) || queries.length === 0) {
 				throw new GridDBError('Queries must be a non-empty array of SQL query objects.');

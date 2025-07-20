@@ -20,7 +20,6 @@ const initializeContainer = async () => {
     try {
       await dbClient.createContainer();
       containerInitialized = true;
-      console.log('GridDB container initialized successfully');
     } catch (error) {
       console.error('Failed to initialize GridDB container:', error);
       throw error;
@@ -50,8 +49,7 @@ export async function POST(request: NextRequest) {
 
     // Check for GridDB configuration
     if (!dbConfig.griddbWebApiUrl || !dbConfig.username || !dbConfig.password) {
-      console.error('Missing GridDB environment variables');
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'GridDB configuration not found. Please check your environment variables.' 
       }, { status: 500 });
     }
@@ -64,17 +62,8 @@ export async function POST(request: NextRequest) {
       generatedVideoURL
     };
 
-    console.log('Saving data to GridDB:', {
-      id: data.id,
-      imageURL: data.imageURL,
-      prompt: data.prompt,
-      generatedVideoURL: data.generatedVideoURL
-    });
-
     // Insert data into GridDB
-    console.log('Calling dbClient.insertData with:', data);
     const result = await dbClient.insertData({ data });
-    console.log('GridDB insert result:', result);
 
     return NextResponse.json({ 
       success: true,
@@ -110,8 +99,7 @@ export async function GET(request: NextRequest) {
 
     // Check for GridDB configuration
     if (!dbConfig.griddbWebApiUrl || !dbConfig.username || !dbConfig.password) {
-      console.error('Missing GridDB environment variables');
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'GridDB configuration not found. Please check your environment variables.' 
       }, { status: 500 });
     }

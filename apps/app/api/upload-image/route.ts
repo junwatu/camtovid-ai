@@ -25,8 +25,6 @@ export async function POST(request: NextRequest) {
     // Upload file to Fal.ai storage
     const uploadUrl = await fal.storage.upload(file);
 
-    console.log(uploadUrl);
-
     return NextResponse.json({
       success: true,
       url: uploadUrl,
@@ -34,7 +32,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error uploading image:', error);
     return NextResponse.json(
       { 
         error: 'Failed to upload image', 

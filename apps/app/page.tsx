@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
-import { ThemeProvider } from "@/components/theme-provider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Image from "next/image";
 import { VideoService } from "@/lib/video-service";
@@ -141,7 +140,6 @@ export default function AIVideoGenerator() {
           try {
             const videoResult = await VideoService.getVideoResult(result.request_id!)
             setGenerationStatus((videoResult as any).status);
-            console.log("Polling for video status:", videoResult); 
 
             if ((videoResult as any).status === 'COMPLETED') {
               const generatedVideoUrl = (videoResult as any).data.data.video.url;
@@ -155,48 +153,25 @@ export default function AIVideoGenerator() {
                 description: "Your AI video has been generated successfully.",
               })
 
-              console.log("Generated video URL:", generatedVideoUrl);
-              console.log("Uploaded image URL:", imageUrl);
-              console.log("Prompt:", prompt);
-
               // Save data to GridDB
-              console.log('Checking save conditions:', {
-                uploadedImageUrl: !!imageUrl,
-                uploadedImageUrlValue: imageUrl,
-                generatedVideoUrl: !!generatedVideoUrl,
-                generatedVideoUrlValue: generatedVideoUrl,
-                prompt: !!prompt,
-                promptValue: prompt
-              });
               
               if (imageUrl) {
                 try {
-                  console.log('Attempting to save metadata to GridDB:', {
-                    imageURL: imageUrl,
-                    prompt: prompt,
-                    generatedVideoURL: generatedVideoUrl
-                  });
-                  
                   const saveResult = await VideoService.saveData({
                     imageURL: imageUrl,
                     prompt: prompt,
                     generatedVideoURL: generatedVideoUrl
                   });
                   
-                  console.log('Save API response:', saveResult);
-                  
                   if (saveResult.success) {
-                    console.log('✅ Metadata saved successfully:', saveResult);
                     toast({
                       title: "Data Saved!",
                       description: `Video data saved to GridDB successfully. ID: ${saveResult.id}`,
                     });
                   } else {
-                    console.error('❌ Save failed with result:', saveResult);
                     throw new Error(saveResult.error || 'Failed to save metadata');
                   }
                 } catch (saveError) {
-                  console.error('❌ Failed to save metadata to GridDB:', saveError);
                   toast({
                     title: "Save Failed",
                     description: "Video generated successfully, but failed to save metadata to database.",
@@ -204,7 +179,6 @@ export default function AIVideoGenerator() {
                   });
                 }
               } else {
-                console.warn('⚠️ Not saving metadata: uploadedImageUrl is not available:', imageUrl);
                 toast({
                   title: "Save Skipped",
                   description: "Video generated but image URL not available for saving metadata.",
@@ -271,9 +245,8 @@ export default function AIVideoGenerator() {
   }, [state, facingMode, startCamera, stopCamera])
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-2 sm:p-4">
-        <div className="max-w-md mx-auto px-2">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-2 sm:p-4">
+      <div className="max-w-md mx-auto px-2">
           {/* Header */}
           <div className="text-center mb-6">
             <div>
@@ -448,9 +421,8 @@ export default function AIVideoGenerator() {
             </CardContent>
           </Card>
 
-          <Toaster />
-        </div>
+        <Toaster />
       </div>
-    </ThemeProvider>
+    </div>
   )
 }

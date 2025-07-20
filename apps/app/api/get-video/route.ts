@@ -38,7 +38,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(status);
   } catch (error) {
-    console.error('Error fetching result:', error);
     return NextResponse.json(
       { 
         error: 'Failed to fetch result', 
