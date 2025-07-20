@@ -136,6 +136,7 @@ export default function AIVideoGenerator() {
         // In a real-world app, you would use a WebSocket or a service like Pusher
         // to receive the result from the webhook in real-time. For this example,
         // we'll continue to use polling.
+        const imageUrl = uploadResult.url; // Capture the uploaded image URL in closure
         const poll = async () => {
           try {
             const videoResult = await VideoService.getVideoResult(result.request_id!)
@@ -154,16 +155,60 @@ export default function AIVideoGenerator() {
                 description: "Your AI video has been generated successfully.",
               })
 
+              console.log("Generated video URL:", generatedVideoUrl);
+              console.log("Uploaded image URL:", imageUrl);
+              console.log("Prompt:", prompt);
+
               // Save data to GridDB
-              if (uploadedImageUrl) {
-                await VideoService.saveData({
-                  imageURL: uploadedImageUrl,
-                  prompt: prompt,
-                  generatedVideoURL: generatedVideoUrl
-                });
+              console.log('Checking save conditions:', {
+                uploadedImageUrl: !!imageUrl,
+                uploadedImageUrlValue: imageUrl,
+                generatedVideoUrl: !!generatedVideoUrl,
+                generatedVideoUrlValue: generatedVideoUrl,
+                prompt: !!prompt,
+                promptValue: prompt
+              });
+              
+              if (imageUrl) {
+                try {
+                  console.log('Attempting to save metadata to GridDB:', {
+                    imageURL: imageUrl,
+                    prompt: prompt,
+                    generatedVideoURL: generatedVideoUrl
+                  });
+                  
+                  const saveResult = await VideoService.saveData({
+                    imageURL: imageUrl,
+                    prompt: prompt,
+                    generatedVideoURL: generatedVideoUrl
+                  });
+                  
+                  console.log('Save API response:', saveResult);
+                  
+                  if (saveResult.success) {
+                    console.log('✅ Metadata saved successfully:', saveResult);
+                    toast({
+                      title: "Data Saved!",
+                      description: `Video data saved to GridDB successfully. ID: ${saveResult.id}`,
+                    });
+                  } else {
+                    console.error('❌ Save failed with result:', saveResult);
+                    throw new Error(saveResult.error || 'Failed to save metadata');
+                  }
+                } catch (saveError) {
+                  console.error('❌ Failed to save metadata to GridDB:', saveError);
+                  toast({
+                    title: "Save Failed",
+                    description: "Video generated successfully, but failed to save metadata to database.",
+                    variant: "destructive",
+                  });
+                }
+              } else {
+                console.warn('⚠️ Not saving metadata: uploadedImageUrl is not available:', imageUrl);
                 toast({
-                  title: "Data Saved!",
-                  description: "Video data saved to GridDB successfully.",
+                  title: "Save Skipped",
+                  description: "Video generated but image URL not available for saving metadata.",
+                  variant: "destructive",
                 });
               }
 

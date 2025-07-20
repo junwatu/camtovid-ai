@@ -72,7 +72,9 @@ export async function POST(request: NextRequest) {
     });
 
     // Insert data into GridDB
+    console.log('Calling dbClient.insertData with:', data);
     const result = await dbClient.insertData({ data });
+    console.log('GridDB insert result:', result);
 
     return NextResponse.json({ 
       success: true,
