@@ -2,6 +2,33 @@
 
 ![cover](images/cover.png)
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+  - [Node.js](#nodejs)
+  - [GridDB](#griddb)
+  - [Fal Kling 2.1 API](#fal-kling-21-api)
+- [How to Run](#how-to-run)
+  - [1. Clone the repository](#1-clone-the-repository)
+  - [2. Install dependencies](#2-install-dependencies)
+  - [3. Set up environment variables](#3-set-up-environment-variables)
+  - [4. Run the project](#4-run-the-project)
+  - [5. Open the application](#5-open-the-application)
+- [Architecture](#architecture)
+- [Technical Overview](#technical-overview)
+  - [Camera Captures](#camera-captures)
+  - [Image Prompt](#image-prompt)
+  - [Generate Video](#generate-video)
+  - [Kling 2.1 from Fal](#kling-21-from-fal)
+    - [1. Initiating polling.](#1-initiating-polling)
+    - [2. Checking the job status.](#2-checking-the-job-status)
+    - [3. Call the API endpoint for a status check.](#3-call-the-api-endpoint-for-a-status-check)
+    - [4. Handling video when the status is complete.](#4-handling-video-when-the-status-is-complete)
+- [Saving Data to GridDB](#saving-data-to-griddb)
+- [API Routes](#api-routes)
+- [Read Data from GridDB](#read-data-from-griddb)
+- [User Interface](#user-interface)
+
 ## What This Blog is About
 
 Capturing a beautiful moment or any object in real life that you like from a camera and using AI to transform it into fun, stylized clips is a great way to engage users and showcase creative technology. In this guide, we build a developer-friendly pipeline using Next.js for the frontend, Fal.ai as a serverless inference runtime, Kling AI for video generation, and GridDB Cloud for real-time metadata storage. We’ll walk through how to capture frames from the webcam, send them to Kling for enhancement, log metadata (image URL, applied effects, which is the prompt, and generated video URL) to GridDB, and render the final video.
@@ -203,7 +230,7 @@ In the `app/page.tsx`, there is a prompt input that only shows after a photo has
 
 Along with the `capturedImage`, this `prompt` will be used to generate video. This will happen if the user clicks the `Generate Video` button.
 
-### Generate Video Flow in The Client
+### Generate Video
 
 Kling 2.1 API from the Fal needs two main parameters:
 
