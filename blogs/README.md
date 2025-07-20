@@ -429,13 +429,17 @@ This `saveData` function calls the `/api/save-data` endpoint to perform the data
 
 ## User Interface
 
-![web app](images/app.png)
-
 The user interface is built using Next.js. It has three main views:
 
 1. Capture Tab.
 2. Prompt Input (shows only after image captured).
 3. Generated Video Tab.
+
+In essence, the UI is a wizard-like workflow that moves the user through a linear sequence: `Capture` -> `Prompt` -> `Generate` -> `View Video`.
+
+The best way to get to know the user interface is to try it yourself! ☺️ However, here is a demo so you can see what the app looks like.
+
+![demo](images/demo.gif)
 
 
 
