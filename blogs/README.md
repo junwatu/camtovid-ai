@@ -4,7 +4,7 @@
 
 ## What This Blog is About
 
-Capturing a beautiful moment or any object in the  real life that you like from a camera and using AI to transform it into fun, stylized clips is a great way to engage users and showcase creative technology. In this guide, we build a developer-friendly pipeline using Next.js for the frontend, Fal.ai as a serverless inference runtime, Kling AI for video generation, and GridDB Cloud for real-time metadata storage. We’ll walk through how to capture frames from the webcam, send them to Kling for enhancement, log metadata (image URL, applied effects which is a prompt, ant generated video URL.) to GridDB, and render the final video.
+Capturing a beautiful moment or any object in real life that you like from a camera and using AI to transform it into fun, stylized clips is a great way to engage users and showcase creative technology. In this guide, we build a developer-friendly pipeline using Next.js for the frontend, Fal.ai as a serverless inference runtime, Kling AI for video generation, and GridDB Cloud for real-time metadata storage. We’ll walk through how to capture frames from the webcam, send them to Kling for enhancement, log metadata (image URL, applied effects, which is the prompt, and generated video URL) to GridDB, and render the final video.
 
 
 ## Prerequisites
@@ -29,7 +29,7 @@ Go to the GridDB Cloud Portal and copy the WebAPI URL from the **Clusters** sect
 
 #### GridDB Username and Password
 
-Go to the **GridDB Users** section of the GridDB Cloud portal and create or copy the username for `GRIDDB_USERNAME`. The password is set when the user is created for the first time, use this as the `GRIDDB_PASSWORD`.
+Go to the **GridDB Users** section of the GridDB Cloud portal and create or copy the username for `GRIDDB_USERNAME`. The password is set when the user is created for the first time. Use this as the `GRIDDB_PASSWORD`.
 
 ![GridDB Users](images/griddb-cloud-users.png)
 
@@ -48,7 +48,7 @@ To whitelist the IP, go to the GridDB Cloud Admin and navigate to the **Network 
 
 ### Fal Kling 2.1 API
 
-You need an Kling 2.1 API key to use this project. You can sign up for an account at [fal.ai](https://fal.ai).
+You need a Kling 2.1 API key to use this project. You can sign up for an account at [fal.ai](https://fal.ai).
 
 After signing up, go to the **Account** section, and create and copy your API key.
 
@@ -96,7 +96,7 @@ GRIDDB_PASSWORD=
 GRIDDB_USERNAME=
 ```
 
-Please look the section on [Prerequisites](#prerequisites) before running the project.
+Please look at the section on [Prerequisites](#prerequisites) before running the project.
 
 ### 4. Run the project
 
@@ -108,7 +108,7 @@ npm run dev
 
 ### 5. Open the application
 
-Open the application in your browser at [http://localhost:3000](http://localhost:3000). You also need to allow the browser to access your camera. If you access the web application from mobile device there will option to select between rear and back camera.
+Open the application in your browser at [http://localhost:3000](http://localhost:3000). You also need to allow the browser to access your camera. If you access the web application from a mobile device, there will be an option to select between the rear and back camera.
 
 ![app-allow-camera](images/allow-camera.png)
 
@@ -120,7 +120,7 @@ The architecture and user flow are intentionally simple for rapid development an
 
 The Next.js frontend sends both the image and prompt to Fal AI’s Kling 2.1 model. Kling 2.1 processes these inputs, generates a video, and returns it directly to the browser client.
 
-When generation is done the metadata: image URL, prompt, and generated video URL will be saved to the GridDB Cloud.
+When generation is done, the metadata: image URL, prompt, and generated video URL will be saved to the GridDB Cloud.
 
 
 ## Technical Overview
@@ -146,11 +146,11 @@ The `use-camera.ts` is a `useCamera` custom hook, which encapsulates all the log
         stopCamera()
         optionsRef.current.onSuccess?.('Photo captured successfully')
         return imageData
-      }
-    }
+ }
+ }
     optionsRef.current.onError?.('Failed to capture photo')
     return null
-  }, [stopCamera])
+ }, [stopCamera])
 // ... existing code ...
 ```
 
@@ -164,58 +164,58 @@ The `app/page.tsx` is the main page component. It uses the `useCamera` hook to g
     if (imageData) {
       setCapturedImage(imageData)
       setState('captured')
-    }
-  }
+ }
+ }
 // ... existing code ...
 ```
 
 ### Image Prompt
 
-In the `app/page.tsx` there is a prompt input that only showed only after a photo has been captured `(state === 'captured')`.
+In the `app/page.tsx`, there is a prompt input that only shows after a photo has been captured `(state === 'captured')`.
 
 ```ts
 // ... existing code ...
-                {/* Prompt Input Section - Only show after photo is captured */}
-                {(state === "captured" || state === "generating" || state === "completed") && (
-                  <div>
-                    <div className="space-y-2">
-                      <Label htmlFor="prompt" className="text-lg font-semibold">
+ {/* Prompt Input Section - Only show after photo is captured */}
+ {(state === "captured" || state === "generating" || state === "completed") && (
+ <div>
+ <div className="space-y-2">
+ <Label htmlFor="prompt" className="text-lg font-semibold">
                         2. Enter Your Creative Prompt
-                      </Label>
-                      <Textarea
+ </Label>
+ <Textarea
                         id="prompt"
                         placeholder="e.g., a majestic lion roaring on a cliff, cinematic lighting"
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         className="min-h-[80px] text-base"
                         disabled={state === "generating"}
-                      />
-                    </div>
-                  </div>
-                )}
-              </TabsContent>
+ />
+ </div>
+ </div>
+ )}
+ </TabsContent>
 
-              <TabsContent value="video" className="p-6">
-                <div className="space-y-6">
-                  {/* Video and Generation status */}
+ <TabsContent value="video" className="p-6">
+ <div className="space-y-6">
+ {/* Video and Generation status */}
 // ... existing code ...
 ```
 
-Along with the `capturedImage`, this `prompt` will be used to generate video. This will happened if the user click the `Generate Video` button.
+Along with the `capturedImage`, this `prompt` will be used to generate video. This will happen if the user clicks the `Generate Video` button.
 
 ### Generate Video Flow in The Client
 
 Kling 2.1 API from the Fal needs two main parameters:
 
-1. **Image reference**, which is the image tha user captured from the camera
+1. **Image reference**, which is the image the user captured from the camera
 2. **Prompt** for the video creation.
 
-Before the video generation, the captured image need should be saved first. In this app, we use fal server to save the captured image.
+Before the video generation, the captured image needed to be saved first. In this app, we use Fal server to save the captured image.
 
 ```ts
     // ... existing code ...
       static async uploadImage(imageData: string): Promise<ImageUploadResponse> {
-        try {
+ try {
           // Convert data URL to blob
           const response = await fetch(imageData);
           const blob = await response.blob();
@@ -227,7 +227,7 @@ Before the video generation, the captured image need should be saved first. In t
           const uploadResponse = await fetch(`${this.baseUrl}/upload-image`, {
             method: 'POST',
             body: formData,
-          });
+ });
     // ... existing code ...
 ```
 
@@ -244,11 +244,11 @@ The upload process is handled by the `/api/upload-image` endpoint. This route us
           success: true,
           url: uploadUrl,
           file_name: file.name
-        });
+ });
     // ... existing code ...
 ```
 
-After successfully image upload and we get the image URL, the `useVideoGeneration` hook will call `VideoSeevice.generateVideo`, passing the image URL and the user's `prompt`:
+After successfully uploading an image and we get the image URL, the `useVideoGeneration` hook will call `VideoSeevice.generateVideo`, passing the image URL and the user's `prompt`:
 
 ```ts
     // ... existing code ...
@@ -261,23 +261,23 @@ After successfully image upload and we get the image URL, the `useVideoGeneratio
           const result = await VideoService.generateVideo({
             image_url: uploadResult.url,
             prompt: prompt,
-          })
+ })
     // ... existing code ...
 ```
 
-The `generateVideo` will call the the `/api/generate-video` endpoint, which in turn calls the Fal.ai Kling AI model to start the video generation job.
+The `generateVideo` will call the `/api/generate-video` endpoint, which in turn calls the Fal.ai Kling AI model to start the video generation job.
 
 ### Kling 2.1 from Fal
 
 The AI model we use to generate video is [Kling 2.1](https://fal.ai/models/fal-ai/kling-video/v2.1/pro/image-to-video). Like other models on Fal, it is best accessed asynchronously. After the video generation job is submitted to Fal.ai, the application enters a monitoring phase to wait for the video to be ready. This is handled by polling for the result in an asynchronous process.
 
-Here step by step implemented in this app until the video is ready:
+Here, step by step, is implemented in this app until the video is ready:
 
  1. Initiating polling.
 
-    The `useVideoGeneration` hook in `hooks/use-video-generation.ts` doesn't just fire and forget. After submitting the job and getting a `request_id`, it starts a polling mechanism to repeatedly check the status of the generation job.
+ The `useVideoGeneration` hook in `hooks/use-video-generation.ts` doesn't just fire and forget. After submitting the job and getting a `request_id`, it starts a polling mechanism to repeatedly check the status of the generation job.
 
-    ```ts
+ ```ts
         // ... existing code ...
       if (result.success && result.request_id) {
         const imageUrl = uploadResult.url
@@ -293,57 +293,57 @@ Here step by step implemented in this app until the video is ready:
 
             if (status === 'COMPLETED') {
             // ... existing code ...
-            } else if (status === 'FAILED' || status === 'CANCELLED') {
+     } else if (status === 'FAILED' || status === 'CANCELLED') {
             // ... existing code ...
-            } else {
+     } else {
               // Continue polling
               setTimeout(poll, pollInterval)
-            }
-          } catch (error) {
+     }
+     } catch (error) {
           // ... existing code ...
-          }
-        }
+     }
+     }
         
         poll()
-      }
+     }
     // ... existing code ...
-    ```
+ ```
 
  2. Checking the job status.
 
-    The poll function calls `VideoService.getVideoResult`, which is responsible for fetching the latest status of the video generation job.
+ The poll function calls `VideoService.getVideoResult`, which is responsible for fetching the latest status of the video generation job.
 
-    ```ts
+ ```ts
         // ... existing code ...
       /**
-       * Get the result of a video generation task
-       */
+     * Get the result of a video generation task
+     */
       static async getVideoResult(requestId: string): Promise<VideoResultResponse> {
-        try {
+     try {
           const response = await fetch(`${this.baseUrl}/get-video?request_id=${requestId}`);
           const result = await response.json();
     
           if (!response.ok) {
             throw new Error(result.error || 'Failed to get video result');
-          }
+     }
     
           return result;
-        } catch (error) {
-          return {
+     } catch (error) {
+     return {
             success: false,
             error: 'Failed to process request',
             details: error instanceof Error ? error.message : 'Unknown error'
-          };
-        }
-      }
+     };
+     }
+     }
     // ... existing code ...
-    ```
+ ```
 
- 3. Call API endpoint for status check.
+ 3. Call the API endpoint for a status check.
 
-     The `VideoService` calls the `/api/get-video` endpoint. This endpoint uses the `fal-ai` client library to get the status of the job from Fal.ai using the `request_id`.
+ The `VideoService` calls the `/api/get-video` endpoint. This endpoint uses the `fal-ai` client library to get the status of the job from Fal.ai using the `request_id`.
 
-     ```ts
+ ```ts
          // ... existing code ...
     export async function GET(request: NextRequest) {
       try {
@@ -352,25 +352,25 @@ Here step by step implemented in this app until the video is ready:
     
         if (!requestId) {
           return NextResponse.json(
-            { error: 'Missing request_id parameter' },
-            { status: 400 }
-          );
-        }
+     { error: 'Missing request_id parameter' },
+     { status: 400 }
+     );
+     }
     
         const result = await fal.queue.get(requestId);
     
         return NextResponse.json(result);
     
-      } catch (error) {
+     } catch (error) {
         return NextResponse.json(
     // ... existing code ...
-    ```
+ ```
     
  4. Handling video when the status is complete.
 
-    Once the polling mechanism receives a `COMPLETED` status, the `useVideoGeneration` hook updates the application state with the generated video's URL and calls the `onSuccess` callback that was passed to it from the main page component.
+ Once the polling mechanism receives a `COMPLETED` status, the `useVideoGeneration` hook updates the application state with the generated video's URL and calls the `onSuccess` callback that was passed to it from the main page component.
 
-    ```ts
+ ```ts
         // ... existing code ...
             if (status === 'COMPLETED') {
               const generatedVideoUrl = (videoResult as any).data.data.video.url
@@ -381,23 +381,23 @@ Here step by step implemented in this app until the video is ready:
               
               options.onSuccess?.(generatedVideoUrl, imageUrl, prompt)
               
-            }
+     }
     // ... existing code ...
-    ```
+ ```
 
 ## Saving Data to GridDB
 
-After the video generation completion than the app will saving the metadata to GridDB Cloud. This saves the metadata of the generated video (the original image URL from Fal.ai, the user's prompt, and the new video URL) to your GridDB database.
+After the video generation is completed, the app will save the metadata to GridDB Cloud. This saves the metadata of the generated video (the original image URL from Fal.ai, the user's prompt, and the new video URL) to your GridDB database.
 
 So, here is the data schema used in the database that you can find in the `lib/types/griddb.types.ts` file:
 
 ```ts
 // Types for container data
 export interface GridDBData {
-	id: string | number;
-	imageURL: string;
-	prompt: string;
-	generatedVideoURL: string;
+    id: string | number;
+    imageURL: string;
+    prompt: string;
+    generatedVideoURL: string;
 }
 ```
 
@@ -408,7 +408,7 @@ The sava data happening in the `app\page.tsx` main component:
       // Video generation management
       const {
     // ... existing code ...
-      } = useVideoGeneration({
+ } = useVideoGeneration({
         onSuccess: async (videoUrl, imageUrl, promptText) => {
           setState('completed')
           setActiveTab('video')
@@ -420,7 +420,7 @@ The sava data happening in the `app\page.tsx` main component:
             imageURL: imageUrl,
             prompt: promptText,
             generatedVideoURL: videoUrl,
-          })
+ })
     // ... existing code ...
 ```
 
@@ -432,14 +432,14 @@ This web app exposed some API.  Here is a table summarizing all the API routes u
 
 | Route                  | HTTP Method | Description                                                                                             |
 | ---------------------- | ----------- | ------------------------------------------------------------------------------------------------------- |
-| `/api/upload-image`    | `POST`      | Receives an image file from the client and uploads it to Fal.ai's temporary storage, returning a URL.   |
-| `/api/generate-video`  | `POST`      | Submits a job to the Fal.ai Kling AI model to generate a video using an image URL and a text prompt.      |
-| `/api/get-video`       | `GET`       | Polls the Fal.ai service to check the status of a video generation job using its `request_id`.            |
-| `/api/save-data`       | `POST`      | Saves the metadata for a generated video (image URL, prompt, video URL) into the GridDB database.         |
+| `/api/upload-image` | `POST` | Receives an image file from the client and uploads it to Fal.ai's temporary storage, returning a URL.   |
+| `/api/generate-video` | `POST` | Submits a job to the Fal.ai Kling AI model to generate a video using an image URL and a text prompt.      |
+| `/api/get-video` | `GET` | Polls the Fal.ai service to check the status of a video generation job using its `request_id`.            |
+| `/api/save-data` | `POST` | Saves the metadata for a generated video (image URL, prompt, video URL) into the GridDB database.         |
 
 ## Read Data from GridDB
 
-The `GET` method in the `/api/save-data/route.ts` file that is responsible for fetching all records from the database. 
+The `GET` method in the `/api/save-data/route.ts` file is responsible for fetching all records from the database. 
 
 Here's how it works:
 
@@ -458,14 +458,14 @@ export async function GET(request: NextRequest) {
       query = {
         type: 'sql-select',
         stmt: `SELECT * FROM camvidai WHERE id = ${parseInt(id)}`
-      };
-    } else {
+ };
+ } else {
       // Get recent entries
       query = {
         type: 'sql-select',
         stmt: `SELECT * FROM camvidai ORDER BY id DESC LIMIT ${parseInt(limit)}`
-      };
-    }
+ };
+ }
 
     const result = await dbClient.searchData([query]);
 // ... existing code ...
