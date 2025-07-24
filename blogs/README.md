@@ -101,10 +101,10 @@ cd apps
 
 ### 2. Install dependencies
 
-Install all project dependencies using npm.
+This project uses Bun for installing package dependencies. You can download Bun from [https://bun.sh](https://bun.sh/).
 
 ```sh
-npm install
+bun install
 ```
 
 ### 3. Set up environment variables
